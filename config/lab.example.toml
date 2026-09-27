@@ -1,0 +1,65 @@
+# Emberi konfigurációs minta; loader: hp3458diag.config (WP-01).
+# Másolat: lab.local.toml (Gitből kizárva). Nincs automatikus élő kapcsolat.
+schema_version = 1
+
+[instrument]
+# Csak kezelő által kiválasztott GPIB INSTR cím, pl. "GPIB0::22::INSTR". Üres = nincs élő kapcsolat.
+resource = ""
+# Üres = PyVISA alapértelmezett VISA-könyvtár; pl. "@py" a pyvisa-py backendhez.
+visa_backend = ""
+# ID?/REV?/ERRSTR? válaszidő; az acquisition timeout külön, WP-02-ben.
+io_timeout_ms = 5000
+read_chunk_bytes = 4096
+max_response_bytes = 65536
+# "lf" (alap): LF vagy END zár; a parser a teljes CR LF-et megköveteli.
+# "eoi": csak END zár. H01: a lekérdezés-válaszokon END ON mellett sincs EOI -> timeout.
+read_termination = "lf"
+# Gyári dokumentált válasz (186. o.): "HP 3458A". A valódi műszer válasza H01 szerint
+# b"HP3458A\r\n" (docs/validation/h01/run1-*.json). Más változat csak raw bizonyítékkal.
+accepted_identities = ["HP 3458A", "HP3458A"]
+expected_family = "HP 3458A"
+line_frequency_nominal_hz = 50
+hardware_revision = "unknown"
+
+[acquisition]
+sample_count = 100
+nplc_values = [1, 10, 100]
+autozero = true
+memory_format = "ASCII"
+output_format = "ASCII"
+settling_seconds = 300
+# Acquisition timeout később a valódi időzítés/adapter alapján, nem fix 2 s.
+
+[validation]
+# "manual_p92": kézikönyv (92. o.), 15 karakter; a szimulátor ezt használja.
+# "hp3458a_rev9_1": H01-ben mért valódi formátum (C21), REV 9,1-en igazolt.
+reading_profile = "hp3458a_rev9_1"
+required_matching_blocks = 2
+maximum_automatic_reads = 3
+# H05 (docs/validation/h05, REV 9,1): a PC pontos értéke minden RMATH-válasz utolsó
+# jegyére kerekít; tűrés = fél egység az utolsó kiírt jegyen, SDEV ddof=1.
+stat_crosscheck = "dmm_half_quantum"
+
+[wiring]
+cable = "JE-H(st)H 2x2x0.8 mm"
+connection = "4-wire Kelvin"
+shield = "DMM side only"
+guard = "TO LO"
+terminals = "operator must confirm FRONT/REAR"
+
+[resistors]  # types: R001 P310, R01/R1/R10 P321, R100 P331 (domain.DUT_LABELS; R10 was P321, D31)
+R001 = 0.01
+R01 = 0.1
+R1 = 1.0
+R10 = 10.0
+R100 = 100.0
+
+[sources]
+source_5V = 5.0
+source_7V05 = 7.05
+source_10V = 10.0
+
+[session]
+warm_up_confirmed = false
+last_acal = "unknown"
+operator_note = ""
